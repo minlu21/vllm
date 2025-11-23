@@ -1550,7 +1550,7 @@ class Qwen2_5_VLForConditionalGeneration(
                     image_embeddings = self._postprocess_image_embeds_evs(
                         image_embeddings, multimodal_input
                     )
-                sample = torch.rand_like(image_embeddings)
+                sample = np.random.rand(image_embeddings.shape)
                 indices_to_remove = np.where(sample > 0.5)[0]
                 image_embeddings = np.delete(image_embeddings, indices_to_remove)
                 multimodal_embeddings += tuple(image_embeddings)
@@ -1560,7 +1560,7 @@ class Qwen2_5_VLForConditionalGeneration(
                     video_embeddings = self._postprocess_video_embeds_evs(
                         video_embeddings, multimodal_input
                     )
-                sample = torch.rand_like(image_embeddings)
+                sample = np.random.rand(video_embeddings.shape)
                 indices_to_remove = np.where(sample > 0.5)[0]
                 video_embeddings = np.delete(video_embeddings, indices_to_remove)
                 multimodal_embeddings += tuple(video_embeddings)
