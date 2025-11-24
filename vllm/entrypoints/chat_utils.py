@@ -4,6 +4,7 @@
 import asyncio
 import inspect
 import json
+import math
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict, deque
 from collections.abc import Awaitable, Callable, Iterable
@@ -1834,3 +1835,63 @@ def make_tool_call_id(id_type: str = "random", func_name=None, idx=None):
     else:
         # by default return random
         return f"chatcmpl-tool-{random_uuid()}"
+
+def resize_image_for_token_budget(
+    image: Image.Image,
+    target_token_budget: int,
+    patch_size: int = 28,
+) -> Image.Image:
+    """
+    Resize image to fit within token budget while preserving aspect ratio.
+    
+    Token calculation: (pixel/patch_size)²
+    
+    Args:
+        image: PIL Image to resize
+        target_token_budget: Maximum number of tokens allowed
+        patch_size: Size of each patch (default 28 for Qwen2.5-VL)
+    
+    Returns:
+        Resized PIL Image
+    """
+    # Calculate current tokens
+    width, height = image.size
+    current_tokens = (width / patch_size) * (height / patch_size)
+    
+    if current_tokens <= target_token_budget:
+        logger.info(
+            f"Image already within budget: {current_tokens:.0f} <= {target_token_budget}"
+        )
+        return image
+    
+    # Calculate target pixel dimension
+    # (new_pixel / patch_size)² = target_token_budget
+    # new_pixel = sqrt(target_token_budget) * patch_size
+    target_pixel = int(math.sqrt(target_token_budget) * patch_size)
+    
+    # For square images, use target_pixel for both dimensions
+    if width == height:
+        new_size = (target_pixel, target_pixel)
+    else:
+        # Preserve aspect ratio
+        aspect_ratio = width / height
+        if width > height:
+            new_width = target_pixel
+            new_height = int(target_pixel / aspect_ratio)
+        else:
+            new_height = target_pixel
+            new_width = int(target_pixel * aspect_ratio)
+        new_size = (new_width, new_height)
+    
+    # Verify new token count
+    new_tokens = (new_size[0] / patch_size) * (new_size[1] / patch_size)
+    
+    logger.info(
+        f"Resizing image: {image.size} → {new_size} "
+        f"(tokens: {current_tokens:.0f} → {new_tokens:.0f}, budget: {target_token_budget})"
+    )
+    
+    # Resize with high-quality resampling
+    resized_image = image.resize(new_size, Image.Resampling.LANCZOS)
+    
+    return resized_image

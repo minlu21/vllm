@@ -560,6 +560,9 @@ class ChatCompletionRequest(OpenAIBaseModel):
     reasoning_effort: Literal["low", "medium", "high"] | None = None
     include_reasoning: bool = True
 
+    # Target token budget for the encoder per request
+    target_token_budget: int | None = None
+
     # NOTE this will be ignored by vLLM -- the model determines the behavior
     parallel_tool_calls: bool | None = False
     user: str | None = None

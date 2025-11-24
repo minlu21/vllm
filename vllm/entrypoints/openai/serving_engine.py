@@ -16,6 +16,7 @@ from fastapi import Request
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from starlette.datastructures import Headers
 from typing_extensions import TypeIs
+from PIL import Image
 
 if sys.version_info >= (3, 12):
     from typing import TypedDict
@@ -37,6 +38,7 @@ from vllm.entrypoints.chat_utils import (
     apply_mistral_chat_template,
     parse_chat_messages_futures,
     resolve_chat_template_content_format,
+    resize_image_for_token_budget
 )
 from vllm.entrypoints.context import ConversationContext
 from vllm.entrypoints.logger import RequestLogger
@@ -1143,6 +1145,27 @@ class OpenAIServing:
             )
 
         mm_data = await mm_data_future
+        
+        logger.info(mm_data)
+        logger.info(request.target_token_budget)
+        
+        # RESIZE IMAGES IF TARGET_TOKEN_BUDGET IS SET
+        if request.target_token_budget is not None and mm_data is not None:
+            if "image" in mm_data:
+                resized_images = []
+                for img in mm_data["image"]:
+                    if isinstance(img, Image.Image):
+                        resized_img = resize_image_for_token_budget(
+                            img,
+                            request.target_token_budget,
+                            patch_size=28,  # Qwen2.5-VL uses 28x28 patches
+                        )
+                        resized_images.append(resized_img)
+                    else:
+                        resized_images.append(img)
+                mm_data["image"] = resized_images
+                logger.info(f"Resized {len(resized_images)} images to fit budget {request.target_token_budget}")
+        
 
         # tool parsing is done only if a tool_parser has been set and if
         # tool_choice is not "none" (if tool_choice is "none" but a tool_parser
