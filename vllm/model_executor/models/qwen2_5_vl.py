@@ -1550,9 +1550,6 @@ class Qwen2_5_VLForConditionalGeneration(
                     image_embeddings = self._postprocess_image_embeds_evs(
                         image_embeddings, multimodal_input
                     )
-                sample = np.random.rand(image_embeddings.shape)
-                indices_to_remove = np.where(sample > 0.5)[0]
-                image_embeddings = np.delete(image_embeddings, indices_to_remove)
                 multimodal_embeddings += tuple(image_embeddings)
             if modality == "video":
                 video_embeddings = self._process_video_input(multimodal_input)
@@ -1560,9 +1557,6 @@ class Qwen2_5_VLForConditionalGeneration(
                     video_embeddings = self._postprocess_video_embeds_evs(
                         video_embeddings, multimodal_input
                     )
-                sample = np.random.rand(video_embeddings.shape)
-                indices_to_remove = np.where(sample > 0.5)[0]
-                video_embeddings = np.delete(video_embeddings, indices_to_remove)
                 multimodal_embeddings += tuple(video_embeddings)
         return multimodal_embeddings
 
