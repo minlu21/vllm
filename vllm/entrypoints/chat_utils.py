@@ -1892,6 +1892,6 @@ def resize_image_for_token_budget(
     )
     
     # Resize with high-quality resampling
-    resized_image = image.resize(new_size, Image.Resampling.LANCZOS)
+    resized_image = image.resize(new_size, Image.Resampling.BILINEAR)
     
     return resized_image
