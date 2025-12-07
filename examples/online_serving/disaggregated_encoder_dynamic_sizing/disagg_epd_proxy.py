@@ -671,7 +671,7 @@ if __name__ == "__main__":
         help="Enable dynamic image sizing wrt TTFT SLO",
     )
     parser.add_argument(
-        "--token_budget",
+        "--token-budget",
         type=int,
         default=None,
         help="Enable static image sizing with specified token budget",
