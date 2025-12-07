@@ -150,7 +150,7 @@ python disagg_epd_proxy.py \
 PIDS+=($!)
 
 wait_for_server $PROXY_PORT
-echo "Running single request with local image (non-stream)..."
+echo "Running single request with local image (non-stream) for engine warmup..."
 curl http://127.0.0.1:${PROXY_PORT}/v1/chat/completions \
     -H "Content-Type: application/json" \
     -d '{
@@ -165,41 +165,4 @@ curl http://127.0.0.1:${PROXY_PORT}/v1/chat/completions \
     }'
 echo "All services are up!"
 
-###############################################################################
-# Benchmark
-###############################################################################
-# echo "Running benchmark (stream)..."
-# vllm bench serve \
-#   --model               $MODEL \
-#   --backend             openai-chat \
-#   --endpoint            /v1/chat/completions \
-#   --dataset-name        hf \
-#   --dataset-path        lmarena-ai/VisionArena-Chat \
-#   --seed                0 \
-#   --num-prompts         $NUM_PROMPTS \
-#   --port                $PROXY_PORT
-
 PIDS+=($!)
-
-###############################################################################
-# Single request with local image
-###############################################################################
-# echo "Running single request with local image (non-stream)..."
-# FILE="${GIT_ROOT}/profile_images/5120-5120.png"
-
-# curl http://0.0.0.0:${PROXY_PORT}/v1/chat/completions \
-#     -H "Content-Type: application/json" \
-#     -d '{
-#     "model": "'${MODEL}'",
-#     "messages": [
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         {"role": "user", "content": [
-#             {"type": "image_url", "image_url": {"url": "file://'"${FILE}"'"}},
-#             {"type": "text", "text": "What is in this image?"}
-#         ]}
-#     ]
-# }'
-
-# # cleanup
-# echo "cleanup..."
-# cleanup
